@@ -1,0 +1,238 @@
+{
+  "run_date": "2026-10-29",
+  "scorer": "deterministic code",
+  "label_source": "designed by construction (mutations of genuine notices)",
+  "model_version": "champion-lr-sigmoid-v1",
+  "verifier": {
+    "genuine_notices": 1006,
+    "false_rejects": 0,
+    "mutators": {
+      "M1": {
+        "defect": "reorder two reasons",
+        "intended_checks": [
+          "reasons_match_derivation"
+        ],
+        "applicable": 1006,
+        "killed": 1006,
+        "skipped": 0,
+        "kill_rate": 1.0
+      },
+      "M2": {
+        "defect": "drop the top reason",
+        "intended_checks": [
+          "reasons_match_derivation"
+        ],
+        "applicable": 1006,
+        "killed": 1006,
+        "skipped": 0,
+        "kill_rate": 1.0
+      },
+      "M3": {
+        "defect": "append a fifth reason",
+        "intended_checks": [
+          "reason_count",
+          "reasons_match_derivation"
+        ],
+        "applicable": 1006,
+        "killed": 1006,
+        "skipped": 0,
+        "kill_rate": 1.0
+      },
+      "M4": {
+        "defect": "prohibited-basis phrase in a reason",
+        "intended_checks": [
+          "no_prohibited_basis"
+        ],
+        "applicable": 1006,
+        "killed": 1006,
+        "skipped": 0,
+        "kill_rate": 1.0
+      },
+      "M5": {
+        "defect": "generic reason text",
+        "intended_checks": [
+          "specific_reasons"
+        ],
+        "applicable": 1006,
+        "killed": 1006,
+        "skipped": 0,
+        "kill_rate": 1.0
+      },
+      "M6": {
+        "defect": "decision statement says approved",
+        "intended_checks": [
+          "decision_consistent"
+        ],
+        "applicable": 1006,
+        "killed": 1006,
+        "skipped": 0,
+        "kill_rate": 1.0
+      },
+      "M7": {
+        "defect": "reason code not in the catalogue",
+        "intended_checks": [
+          "reasons_match_derivation"
+        ],
+        "applicable": 1006,
+        "killed": 1006,
+        "skipped": 0,
+        "kill_rate": 1.0
+      },
+      "M8": {
+        "defect": "a stated number changed",
+        "intended_checks": [
+          "numbers_grounded"
+        ],
+        "applicable": 534,
+        "killed": 534,
+        "skipped": 472,
+        "kill_rate": 1.0
+      },
+      "M9": {
+        "defect": "ECOA statement removed",
+        "intended_checks": [
+          "legal_frame_intact"
+        ],
+        "applicable": 1006,
+        "killed": 1006,
+        "skipped": 0,
+        "kill_rate": 1.0
+      },
+      "M10": {
+        "defect": "promise of approval added",
+        "intended_checks": [
+          "approved_wording"
+        ],
+        "applicable": 1006,
+        "killed": 1006,
+        "skipped": 0,
+        "kill_rate": 1.0
+      },
+      "M11": {
+        "defect": "category swapped for another value",
+        "intended_checks": [
+          "specific_reasons"
+        ],
+        "applicable": 1006,
+        "killed": 1006,
+        "skipped": 0,
+        "kill_rate": 1.0
+      },
+      "M12": {
+        "defect": "reason negated",
+        "intended_checks": [
+          "approved_wording"
+        ],
+        "applicable": 1006,
+        "killed": 1006,
+        "skipped": 0,
+        "kill_rate": 1.0
+      },
+      "M13": {
+        "defect": "zero-width character inserted",
+        "intended_checks": [
+          "approved_wording"
+        ],
+        "applicable": 1006,
+        "killed": 1006,
+        "skipped": 0,
+        "kill_rate": 1.0
+      },
+      "M14": {
+        "defect": "unapproved wording variant",
+        "intended_checks": [
+          "approved_wording",
+          "numbers_grounded"
+        ],
+        "applicable": 1006,
+        "killed": 1006,
+        "skipped": 0,
+        "kill_rate": 1.0
+      }
+    }
+  },
+  "meta_mutation": {
+    "reasons_match_derivation": "detected",
+    "reason_count": "detected",
+    "no_prohibited_basis": "detected",
+    "specific_reasons": "detected",
+    "decision_consistent": "detected",
+    "numbers_grounded": "detected",
+    "legal_frame_intact": "detected",
+    "approved_wording": "detected"
+  },
+  "analyst": {
+    "scorer": "scripted stand-in (deterministic code around a replayed model)",
+    "label_source": "designed by construction (single author)",
+    "model_version": "n/a (stand-in)",
+    "n": 16,
+    "passed": 16,
+    "cases": {
+      "A1": {
+        "job": "evidence_qa",
+        "passed": true
+      },
+      "A2": {
+        "job": "evidence_qa",
+        "passed": true
+      },
+      "A3": {
+        "job": "evidence_qa",
+        "passed": true
+      },
+      "G1": {
+        "job": "grounding",
+        "passed": true
+      },
+      "G2": {
+        "job": "grounding",
+        "passed": true
+      },
+      "G3": {
+        "job": "grounding",
+        "passed": true
+      },
+      "G4": {
+        "job": "grounding",
+        "passed": true
+      },
+      "G5": {
+        "job": "grounding",
+        "passed": true
+      },
+      "C1": {
+        "job": "case_explainer",
+        "passed": true
+      },
+      "D1": {
+        "job": "data_query",
+        "passed": true
+      },
+      "D2": {
+        "job": "data_query",
+        "passed": true
+      },
+      "R1": {
+        "job": "refusal",
+        "passed": true
+      },
+      "R2": {
+        "job": "refusal",
+        "passed": true
+      },
+      "R3": {
+        "job": "refusal",
+        "passed": true
+      },
+      "H1": {
+        "job": "reports",
+        "passed": true
+      },
+      "H2": {
+        "job": "reports",
+        "passed": true
+      }
+    }
+  },
+  "gate_problems": []
+}

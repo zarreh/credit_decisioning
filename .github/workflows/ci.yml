@@ -1,0 +1,53 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v3
+      - name: Install
+        run: uv sync --frozen --extra dev --extra docs
+      - name: Fetch and verify the UCI data (sha256-pinned)
+        run: make data
+      - run: make lint
+      - run: make typecheck
+      - run: make imports
+      - run: make test
+      - name: Eval gate (model, verifier mutations, analyst stand-in)
+        run: make eval
+      - name: Evidence reproduces from scratch
+        run: make reproduce
+      - name: Docs build
+        run: uv run mkdocs build --strict
+
+  frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+      - run: npx tsc --noEmit
+      - run: npm run build
+
+  containers:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker compose build

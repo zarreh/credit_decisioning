@@ -1,0 +1,27 @@
+# Production stack. Publishes no host ports: a reverse proxy on the external `edge`
+# network is the only way in (docs/deploy.md). Service names are unique across apps
+# because they become DNS aliases on the shared network.
+services:
+  credit-api:
+    build: .
+    env_file:
+      - .env
+    volumes:
+      - ./data:/app/data
+    restart: unless-stopped
+    networks: [default, edge]
+  credit-web:
+    build:
+      context: ./frontend
+      args:
+        NEXT_PUBLIC_API_BASE: ${WEB_PUBLIC_API_URL:-https://credit.zarreh.ai/api}
+        NEXT_PUBLIC_DOCS_URL: ${WEB_PUBLIC_DOCS_URL:-https://zarreh.github.io/credit_decisioning/}
+    depends_on:
+      credit-api:
+        condition: service_healthy
+    restart: unless-stopped
+    networks: [default, edge]
+
+networks:
+  edge:
+    external: true

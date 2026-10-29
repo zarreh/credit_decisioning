@@ -1,0 +1,23 @@
+# Local stack: API on :8000, web on :3000.
+services:
+  api:
+    build: .
+    ports:
+      - "8000:8000"
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      CREDIT_ENVIRONMENT: development
+    volumes:
+      - ./data:/app/data
+  web:
+    build:
+      context: ./frontend
+      args:
+        NEXT_PUBLIC_API_BASE: http://localhost:8000
+    ports:
+      - "3000:3000"
+    depends_on:
+      api:
+        condition: service_healthy

@@ -1,0 +1,107 @@
+# Reason catalogue: the single source of truth for adverse-action reason wording.
+#
+# One entry per model attribute. Each variant is an approved English sentence; the
+# reviewer may pick any variant, but nobody types notice text (C5). Slots in braces are
+# filled by code from the application's own fields; a numeric slot is filled with the
+# integer value and a category slot with its codebook label.
+#
+# Author-reviewed (single author). Not legal review. Version bumps whenever wording
+# changes, and the verifier fixtures must be re-reviewed with it.
+version: "2026-10-29.1"
+reasons:
+  checking_status:
+    code: R01
+    slots: [checking_status]
+    variants:
+      standard: "Status of existing checking account: {checking_status}."
+      plain: "The balance or status of your checking account with us ({checking_status})."
+  duration_months:
+    code: R02
+    slots: [duration_months]
+    variants:
+      standard: "Length of the requested loan term: {duration_months} months."
+      plain: "The loan term you asked for ({duration_months} months)."
+  credit_history:
+    code: R03
+    slots: [credit_history]
+    variants:
+      standard: "Credit history: {credit_history}."
+      plain: "Your record of repaying earlier credit ({credit_history})."
+  purpose:
+    code: R04
+    slots: [purpose]
+    variants:
+      standard: "Purpose of the requested credit: {purpose}."
+      plain: "What the loan is for ({purpose})."
+  credit_amount:
+    code: R05
+    slots: [credit_amount]
+    variants:
+      standard: "Amount of credit requested: {credit_amount} DM."
+      plain: "The amount you asked to borrow ({credit_amount} DM)."
+  savings:
+    code: R06
+    slots: [savings]
+    variants:
+      standard: "Savings account or bonds balance: {savings}."
+      plain: "The savings or bonds you hold ({savings})."
+  employment_since:
+    code: R07
+    slots: [employment_since]
+    variants:
+      standard: "Length of present employment: {employment_since}."
+      plain: "How long you have been in your current job ({employment_since})."
+  installment_rate:
+    code: R08
+    slots: [installment_rate]
+    variants:
+      standard: "Instalment amount relative to disposable income: band {installment_rate} of 4."
+      plain: "How large the repayments are compared with your disposable income (band {installment_rate} of 4)."
+  other_debtors:
+    code: R09
+    slots: [other_debtors]
+    variants:
+      standard: "Other debtors or guarantors on the application: {other_debtors}."
+      plain: "Whether anyone else shares responsibility for the loan ({other_debtors})."
+  residence_since:
+    code: R10
+    slots: [residence_since]
+    variants:
+      standard: "Time at present residence: band {residence_since} of 4."
+      plain: "How long you have lived at your current address (band {residence_since} of 4)."
+  property:
+    code: R11
+    slots: [property]
+    variants:
+      standard: "Property or collateral held: {property}."
+      plain: "The property or assets you hold ({property})."
+  other_installment_plans:
+    code: R12
+    slots: [other_installment_plans]
+    variants:
+      standard: "Other instalment plans: {other_installment_plans}."
+      plain: "Other instalment plans you are paying ({other_installment_plans})."
+  housing:
+    code: R13
+    slots: [housing]
+    variants:
+      standard: "Housing status: {housing}."
+      plain: "Your housing situation ({housing})."
+  existing_credits:
+    code: R14
+    slots: [existing_credits]
+    variants:
+      standard: "Number of existing credits at this bank: {existing_credits}."
+      plain: "How many loans you already have with us ({existing_credits})."
+  job:
+    code: R15
+    slots: [job]
+    variants:
+      standard: "Type of employment: {job}."
+      plain: "The kind of work you do ({job})."
+  dependents:
+    code: R16
+    slots: [dependents]
+    variants:
+      standard: "Number of people the applicant is liable to support: {dependents}."
+      plain: "How many people you support financially ({dependents})."

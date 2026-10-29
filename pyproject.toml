@@ -1,0 +1,128 @@
+[project]
+name = "credit"
+version = "0.1.0"
+description = "B2 — Credit Decisioning: calibrated credit model, code-derived adverse-action reasons, a mutation-tested notice verifier, and a read-only analyst agent"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.32",
+    "pydantic>=2.9",
+    "pydantic-settings>=2.6",
+    "structlog>=24.4",
+    "slowapi>=0.1.9",
+    "sse-starlette>=2.1",
+    "numpy>=2.0",
+    "pandas>=2.2",
+    "scikit-learn>=1.5",
+    "joblib>=1.4",
+    "pyyaml>=6.0",
+    "langchain>=1.0",
+    "langchain-openai>=1.0",
+    "langgraph-checkpoint-sqlite>=3.0",
+    "zarreh-agentkit",
+]
+
+[project.optional-dependencies]
+dev = [
+    "ruff>=0.7",
+    "mypy>=1.13",
+    "pytest>=8.3",
+    "pytest-asyncio>=0.24",
+    "pytest-cov>=6.0",
+    "import-linter>=2.1",
+    "detect-secrets>=1.5",
+    "pre-commit>=4.0",
+    "httpx>=0.27",
+    "pandas-stubs>=2.2",
+    "types-pyyaml>=6.0",
+]
+docs = [
+    "mkdocs>=1.6",
+    "mkdocs-material>=9.5",
+    "matplotlib>=3.9",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/credit"]
+
+[tool.uv.sources]
+zarreh-agentkit = { git = "https://github.com/zarreh/zarreh_agentkit.git", tag = "v0.5.0" }
+
+[tool.ruff]
+line-length = 120
+target-version = "py312"
+extend-exclude = ["frontend"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM", "TID", "S"]
+ignore = ["S101", "S311"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["S"]
+"evals/*" = ["S"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+mypy_path = "src"
+explicit_package_bases = true
+files = ["src", "evals", "tests"]
+
+[[tool.mypy.overrides]]
+module = ["sklearn.*", "joblib.*", "sse_starlette.*"]
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+filterwarnings = ["ignore::DeprecationWarning"]
+
+[tool.coverage.run]
+source = ["src/credit"]
+omit = ["src/credit/pipeline/train.py", "src/credit/pipeline/queue.py", "src/credit/cli.py"]
+
+[tool.coverage.report]
+fail_under = 90
+show_missing = true
+
+[tool.importlinter]
+root_package = "credit"
+include_external_packages = true
+
+[[tool.importlinter.contracts]]
+name = "Layers: api -> {analyst | workflow} -> readmodels -> store -> {guardrails | notice} -> pipeline -> schemas"
+type = "layers"
+layers = [
+    "credit.api",
+    "credit.analyst | credit.workflow",
+    "credit.readmodels",
+    "credit.store",
+    "credit.guardrails | credit.notice",
+    "credit.pipeline",
+    "credit.schemas",
+]
+
+[[tool.importlinter.contracts]]
+name = "The decision path never imports an LLM or agent library (D-B2-3)"
+type = "forbidden"
+source_modules = [
+    "credit.pipeline",
+    "credit.notice",
+    "credit.guardrails",
+    "credit.workflow",
+    "credit.readmodels",
+    "credit.store",
+    "credit.schemas",
+]
+forbidden_modules = ["langchain", "langchain_core", "langchain_openai", "langgraph", "openai"]
+
+[[tool.importlinter.contracts]]
+name = "The analyst cannot reach the decision path's writers"
+type = "forbidden"
+source_modules = ["credit.analyst"]
+forbidden_modules = ["credit.workflow", "credit.notice", "credit.pipeline.train", "credit.pipeline.model"]

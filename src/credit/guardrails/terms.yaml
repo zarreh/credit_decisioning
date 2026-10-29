@@ -1,0 +1,55 @@
+# Words that must never appear in a reason sentence (V3). Checked on reason text
+# only: the ECOA paragraph is required to name these bases and is verified by V7.
+# Matched case-insensitively on whole words after Unicode NFKC normalisation.
+version: "2026-10-29.1"
+terms:
+  - sex
+  - gender
+  - female
+  - male
+  - woman
+  - man
+  - marital
+  - married
+  - single
+  - divorced
+  - separated
+  - widowed
+  - age
+  - aged
+  - old
+  - young
+  - years old
+  - race
+  - racial
+  - color
+  - colour
+  - religion
+  - religious
+  - national origin
+  - nationality
+  - foreign
+  - foreigner
+  - immigrant
+  - citizenship
+  - public assistance
+  - welfare
+  - pregnant
+  - telephone
+# Phrases Regulation B and CFPB guidance treat as insufficient on their own (V4).
+generic_phrases:
+  - internal standards
+  - internal policy
+  - did not meet our standards
+  - insufficient points
+  - score too low
+  - qualifying score
+  - credit scoring system
+  - model output
+  - algorithm
+# Language that promises a different outcome (V8, defence in depth).
+promise_patterns:
+  - '\bwe (?:will|would|shall) (?:approve|grant|accept)'
+  - '\bguarantee'
+  - '\bif you\b.*\b(?:approve|approval)\b'
+  - '\bpre-?approved\b'

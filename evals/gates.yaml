@@ -1,0 +1,16 @@
+# Regression gates for `make eval`. Model bounds were recorded from the first real run
+# (artifacts/evidence.json, 2026-10-29) plus a stated tolerance; they are never
+# aspirational. Changing a bound needs a reviewed commit explaining why.
+model:
+  first_run:
+    expected_cost: 0.541
+    auroc: 0.780
+    ece: 0.016
+  max_expected_cost: 0.56        # first run + 0.02
+  must_beat_baseline: decline_everyone   # 0.70; the cheaper trivial policy
+  min_auroc: 0.76                # first run - 0.02
+  max_ece: 0.04                  # first run + 0.024; ECE is noisy at n = 1,000
+verifier:
+  min_kill_rate: 1.0
+  max_false_rejects: 0
+  min_applicable_per_mutator: 1
