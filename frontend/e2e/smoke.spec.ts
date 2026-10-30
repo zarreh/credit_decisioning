@@ -35,3 +35,12 @@ test("unknown application shows an actionable error", async ({ page }) => {
   await page.goto("/applications/APP-999");
   await expect(page.getByText(/No application 'APP-999'/)).toBeVisible();
 });
+
+test("queue recovers when the API starts late", async ({ page }) => {
+  let up = false;
+  await page.route("**/applications", (route) => (up ? route.continue() : route.abort("connectionrefused")));
+  setTimeout(() => (up = true), 4000);
+  await page.goto("/queue");
+  await expect(page.getByRole("link", { name: "APP-001" })).toBeVisible({ timeout: 15000 });
+  await expect(page.getByText("Could not load the queue")).toHaveCount(0);
+});

@@ -11,16 +11,32 @@ export class ApiError extends Error {
   }
 }
 
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+// `make run` starts the web app a few seconds before the API has loaded the model, so a
+// read that finds nothing listening is retried briefly. Writes are never retried.
+const READ_RETRIES = 6;
+const RETRY_DELAY_MS = 1500;
+
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  let res: Response;
-  try {
-    res = await fetch(`${API_BASE}${path}`, {
-      ...init,
-      headers: { "Content-Type": "application/json", ...(init?.headers ?? {}) },
-      cache: "no-store",
-    });
-  } catch {
-    throw new ApiError(0, `Cannot reach the API at ${API_BASE}. Is it running (make dev)?`);
+  const isRead = (init?.method ?? "GET") === "GET";
+  let res: Response | undefined;
+  for (let attempt = 0; res === undefined; attempt++) {
+    try {
+      res = await fetch(`${API_BASE}${path}`, {
+        ...init,
+        headers: { "Content-Type": "application/json", ...(init?.headers ?? {}) },
+        cache: "no-store",
+      });
+    } catch {
+      if (!isRead || attempt >= READ_RETRIES) {
+        throw new ApiError(
+          0,
+          `Cannot reach the API at ${API_BASE}. Is it running? Start it with "make dev" (or "make run" for both), then reload.`,
+        );
+      }
+      await sleep(RETRY_DELAY_MS);
+    }
   }
   if (!res.ok) {
     let detail = res.statusText;
