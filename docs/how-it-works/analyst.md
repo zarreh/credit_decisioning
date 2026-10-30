@@ -32,7 +32,7 @@ A read-only assistant beside the product: the only place an LLM is used. It expl
 | Log every tool call; turn a refused query into a recoverable message | `ToolAudit` (custom `wrap_tool_call`) |
 | Check every number; one repair attempt; then flag | `GroundingMiddleware` (custom `after_model`, can jump back to the model) |
 
-Chat memory uses a SQLite checkpointer per thread; the API streams tool calls, tool results, approval requests and the final answer over SSE.
+Answers and report drafts are rendered as Markdown in the UI (`react-markdown` with GFM; raw HTML is never rendered and unsafe link schemes become plain text, covered by an end-to-end test). Chat memory uses a SQLite checkpointer per thread; the API streams tool calls, tool results, approval requests and the final answer over SSE.
 
 ## Grounding
 

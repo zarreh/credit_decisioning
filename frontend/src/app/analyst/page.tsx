@@ -4,6 +4,7 @@ import { Bot, FileText } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 
 import { AnalystChat } from "@/components/AnalystChat";
+import { Markdown } from "@/components/Markdown";
 import { Badge } from "@/components/ui/Badge";
 import { Card, CardTitle } from "@/components/ui/Card";
 import { PageHeader } from "@/components/ui/PageHeader";
@@ -26,7 +27,7 @@ export default function AnalystPage() {
           aggregate benchmark queries with small cells suppressed. It can draft a report, but only you can save it.
         </p>
         <p>
-          Code checks every number it states against the tool result it came from; anything that does not match is flagged
+          Code checks that every number it states appears in a tool result it retrieved; anything that does not is flagged
           in amber. It cannot score, decide or change anything.
         </p>
       </PageHeader>
@@ -69,7 +70,9 @@ export default function AnalystPage() {
                   </p>
                   <details className="mt-1 text-sm">
                     <summary className="cursor-pointer text-xs text-teal-700 dark:text-teal-400">Read</summary>
-                    <p className="mt-1 whitespace-pre-wrap text-slate-700 dark:text-slate-300">{d.body}</p>
+                    <div className="mt-2 border-t border-slate-100 pt-2 dark:border-slate-800">
+                      <Markdown>{d.body}</Markdown>
+                    </div>
                   </details>
                 </li>
               ))}

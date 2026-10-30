@@ -3,6 +3,7 @@
 import { Bot, CircleCheck, LoaderCircle, Send, TriangleAlert, Wrench } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
+import { Markdown } from "@/components/Markdown";
 import { Badge } from "@/components/ui/Badge";
 import { Callout } from "@/components/ui/Callout";
 import { InfoTip } from "@/components/ui/InfoTip";
@@ -173,16 +174,22 @@ export function AnalystChat({
                   <p className="mt-2 text-xs font-medium">You chose: {t.resolved}</p>
                 ) : (
                   <>
-                    <label className="mt-2 block text-xs font-medium" htmlFor={`draft-${i}`}>
-                      Draft text (edit before saving if you like)
-                    </label>
-                    <textarea
-                      id={`draft-${i}`}
-                      value={draftEdit}
-                      onChange={(e) => setDraftEdit(e.target.value)}
-                      rows={6}
-                      className="mt-1 w-full rounded-lg border border-amber-300 bg-white p-2 font-mono text-xs dark:border-amber-800 dark:bg-slate-900"
-                    />
+                    <div className="mt-2 max-h-56 overflow-y-auto rounded-lg border border-amber-200 bg-white p-3 dark:border-amber-900 dark:bg-slate-900">
+                      <Markdown>{draftEdit}</Markdown>
+                    </div>
+                    <details className="mt-2 text-xs">
+                      <summary className="cursor-pointer font-medium">Edit the draft text (Markdown)</summary>
+                      <label className="sr-only" htmlFor={`draft-${i}`}>
+                        Draft text
+                      </label>
+                      <textarea
+                        id={`draft-${i}`}
+                        value={draftEdit}
+                        onChange={(e) => setDraftEdit(e.target.value)}
+                        rows={8}
+                        className="mt-1 w-full rounded-lg border border-amber-300 bg-white p-2 font-mono text-xs dark:border-amber-800 dark:bg-slate-900"
+                      />
+                    </details>
                     <div className="mt-2 flex flex-wrap gap-2">
                       <button type="button" onClick={() => decide(draftEdit === t.body ? "approve" : "edit")} className="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700">
                         Save draft
@@ -210,7 +217,7 @@ export function AnalystChat({
                 )}
                 <InfoTip text={GLOSSARY.grounding} />
               </div>
-              <p className="whitespace-pre-wrap leading-relaxed text-slate-800 dark:text-slate-200">{t.text}</p>
+              <Markdown>{t.text}</Markdown>
               {!t.grounding.verified && (
                 <ul className="mt-2 list-disc pl-5 text-xs text-amber-800 dark:text-amber-300">
                   {t.grounding.problems.map((p) => (
