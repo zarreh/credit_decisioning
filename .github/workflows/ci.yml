@@ -27,6 +27,8 @@ jobs:
         run: make eval
       - name: Evidence reproduces from scratch
         run: make reproduce
+      - name: Docs assets are up to date
+        run: make docs-assets && git diff --exit-code -- docs
       - name: Docs build
         run: uv run mkdocs build --strict
 

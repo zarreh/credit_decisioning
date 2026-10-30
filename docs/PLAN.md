@@ -1,5 +1,16 @@
 # B2 — Credit Decisioning Copilot: build plan
 
+> **Status (2026-10-29): Stage A built.** This document is the original plan. The design was revised before building; the revision below **supersedes** any conflicting text further down (§§1, 5.3, 6, 8 and 10 in particular). What was built is described in [the docs](index.md) and the [ADRs](decisions/index.md).
+>
+> **Design revision (v3), user-directed:**
+>
+> - **No LangGraph.** The review workflow is a plain-code state machine over SQLite (ADR 0001), a deliberate exception to portfolio plan v4 §9.1.
+> - **No LLM in the notice.** The notice is fully templated with reviewed wording variants; `chains/explain_reasons.py` and the oracle explainer are dropped (ADR 0003).
+> - **All GenAI moves to a read-only analyst agent** built with LangChain `create_agent`, tools and middleware: evidence Q&A, case explanation, aggregate data queries and report drafts saved only after human approval, with a code grounding check on every number (ADR 0011, 0013).
+> - **Corrections to this plan:** the cost inequality in §3.1 is reversed in the text (decline is cheaper when `1 − p < 5p`, i.e. `p > 1/6`; the value is right); prohibited terms are checked in reason text only because the ECOA paragraph must name them (V3/V7); numbers are checked per field (V6); the champion is unweighted (no double-counted costs); mutations report applicable/killed/skipped; fixtures are labelled single-author.
+> - **Additions:** mutators M11–M14 (category swap, negation, zero-width character, unapproved variant); verified-hash binding before a notice can be sent; a refer case must `prepare_decline` before it can be declined.
+> - **Not done (optional follow-ups):** a recorded live-model analyst run; public hosting; X4 extraction. `.env.example` could not be written in the build session (content-exclusion policy); variables are documented in `docs/deploy.md`.
+
 *Written 2026-10-29 from `PORTFOLIO_PLAN_V4.md` (§0a, §6a, §9.5, §10.1, §13). Plan only: nothing in this folder has been built. This document is written so a fresh implementation conversation can start from it without any other context. Read `PORTFOLIO_PLAN_V4.md` §9 (shared project template), §9.5 (case-study standard) and §10.1 (UI and readiness standard), and `cohort_risk_lab/UI-ENHANCEMENT-GUIDE.md`, before Phase 0.*
 
 ---

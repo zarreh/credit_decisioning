@@ -1,0 +1,50 @@
+site_name: Credit Decisioning
+site_description: Verified adverse-action notices on a calibrated credit model, with a read-only analyst agent.
+site_url: https://zarreh.github.io/credit_decisioning/
+repo_url: https://github.com/zarreh/credit_decisioning
+docs_dir: docs
+exclude_docs: |
+  PLAN.md
+  generate_plots.py
+theme:
+  name: material
+  features:
+    - navigation.sections
+    - navigation.top
+    - content.code.copy
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: teal
+      accent: indigo
+      toggle: { icon: material/weather-night, name: Dark mode }
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: teal
+      accent: indigo
+      toggle: { icon: material/weather-sunny, name: Light mode }
+markdown_extensions:
+  - admonition
+  - attr_list
+  - tables
+  - toc: { permalink: true }
+  - pymdownx.superfences:
+      custom_fences:
+        - { name: mermaid, class: mermaid, format: !!python/name:pymdownx.superfences.fence_code_format }
+nav:
+  - Home: index.md
+  - Case study: case-study.md
+  - How it works:
+      - Overview: how-it-works/index.md
+      - The notice verifier: how-it-works/verifier.md
+      - The analyst agent: how-it-works/analyst.md
+  - Evidence:
+      - What we measured: evidence/index.md
+      - Results (generated): evidence/results.md
+      - Fairness: evidence/fairness.md
+      - Honest limits: evidence/limits.md
+  - Regulatory basis: regulatory-basis.md
+  - Decisions (ADRs): decisions/index.md
+  - Run it yourself: run-it-yourself.md
+  - Deploy: deploy.md
+  - Harvest and debt: HARVEST.md
