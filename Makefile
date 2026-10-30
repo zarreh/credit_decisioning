@@ -52,8 +52,11 @@ queue-reset:
 # Retrain from scratch and confirm the committed evidence is reproduced (run date aside).
 reproduce:
 	cp artifacts/evidence.json /tmp/credit-evidence.json
+	cp artifacts/model.joblib /tmp/credit-model.joblib
 	$(MAKE) train
 	uv run python -c "import json; a, b = (json.load(open(p)) for p in ('/tmp/credit-evidence.json', 'artifacts/evidence.json')); [d['provenance'].pop('run_date') for d in (a, b)]; assert a == b, 'evidence changed'; print('evidence reproduced')"
+	cp /tmp/credit-evidence.json artifacts/evidence.json
+	cp /tmp/credit-model.joblib artifacts/model.joblib
 
 up:
 	docker compose up --build
