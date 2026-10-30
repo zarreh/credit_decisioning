@@ -64,7 +64,7 @@ ignore = ["S101", "S311"]
 
 [tool.ruff.lint.per-file-ignores]
 "tests/*" = ["S"]
-"evals/*" = ["S"]
+"evals/*" = ["S", "E501"]
 
 [tool.mypy]
 python_version = "3.12"

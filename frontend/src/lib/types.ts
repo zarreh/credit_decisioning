@@ -152,6 +152,7 @@ export interface Claim {
 export interface Grounding {
   verified: boolean;
   problems: string[];
+  citation_problems?: string[];
   numbers_checked: number;
   repairs?: number;
 }

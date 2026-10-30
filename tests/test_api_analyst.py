@@ -14,7 +14,7 @@ from credit.api import analyst, deps
 from credit.store import Store
 from evals.scripted import answer, call, scripted
 
-AUROC = "evidence:champion.auroc"
+AUROC = "evidence"
 
 
 @pytest.fixture
@@ -49,9 +49,7 @@ def chat(client: TestClient, message: str, **extra: Any) -> list[tuple[str, dict
 
 
 def test_chat_streams_tools_then_a_verified_answer(use_script: Callable[..., TestClient]) -> None:
-    client = use_script(
-        call("get_evidence_metric", metric="auroc"), answer("AUROC is 0.78.", (0.78, AUROC, "estimate"))
-    )
+    client = use_script(call("get_evidence"), answer("AUROC is 0.78.", (0.78, AUROC, "champion.auroc.estimate")))
     stream = chat(client, "How good is it?", page="evidence")
     assert [k for k, _ in stream] == ["tool_call", "tool_result", "answer"]
     assert stream[1][1]["source_id"] == AUROC
@@ -60,9 +58,9 @@ def test_chat_streams_tools_then_a_verified_answer(use_script: Callable[..., Tes
 
 def test_unverified_answer_is_flagged(use_script: Callable[..., TestClient]) -> None:
     client = use_script(
-        call("get_evidence_metric", metric="auroc"),
-        answer("AUROC is 0.91.", (0.91, AUROC, "estimate")),
-        answer("AUROC is 0.91.", (0.91, AUROC, "estimate")),
+        call("get_evidence"),
+        answer("AUROC is 0.91.", (0.91, AUROC, "champion.auroc.estimate")),
+        answer("AUROC is 0.91.", (0.91, AUROC, "champion.auroc.estimate")),
     )
     final = chat(client, "auroc?", case_id="APP-001")[-1][1]
     assert final["grounding"]["verified"] is False and final["grounding"]["problems"]

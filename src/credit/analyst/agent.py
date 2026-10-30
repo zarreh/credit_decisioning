@@ -23,7 +23,14 @@ from langchain.agents.structured_output import ToolStrategy
 from langchain_core.language_models import BaseChatModel
 from langgraph.checkpoint.base import BaseCheckpointSaver
 
-from credit.analyst.middleware import GroundingMiddleware, ScopeGuard, ToolAudit, page_context
+from credit.analyst.middleware import (
+    AnswerPush,
+    GroundingMiddleware,
+    OneDraftPerTurn,
+    ScopeGuard,
+    ToolAudit,
+    page_context,
+)
 from credit.analyst.schemas import AnalystAnswer, AnalystContext
 from credit.analyst.tools import build_tools
 from credit.settings import Settings
@@ -44,6 +51,7 @@ def build_agent(
     middleware: list[AgentMiddleware[Any, Any]] = [
         ScopeGuard(),
         page_context,
+        AnswerPush(max_rounds=settings.analyst_max_tool_rounds),
         ModelCallLimitMiddleware(run_limit=settings.analyst_max_model_calls, exit_behavior="end"),
         ToolCallLimitMiddleware(run_limit=settings.analyst_max_tool_calls),
         ModelRetryMiddleware(max_retries=2),
@@ -51,6 +59,7 @@ def build_agent(
         HumanInTheLoopMiddleware(
             interrupt_on={"save_report_draft": {"allowed_decisions": ["approve", "edit", "reject"]}}
         ),
+        OneDraftPerTurn(),  # after HITL: after_model hooks run in reverse, so it acts before an approval prompt
         ToolAudit(),
         GroundingMiddleware(max_repairs=1),
     ]

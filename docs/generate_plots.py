@@ -190,7 +190,46 @@ def results_md() -> str:
         "|---|---|---|",
     ]
     lines += [f"| {cid} | {c['job']} | {'yes' if c['passed'] else 'no'} |" for cid, c in a["cases"].items()]
+    lines += live_section()
     return "\n".join(lines) + "\n"
+
+
+def live_section() -> list[str]:
+    path, first_path = ROOT / "artifacts/analyst_live.json", ROOT / "artifacts/analyst_live_first_run.json"
+    if not path.exists():
+        return []
+    live = json.loads(path.read_text())
+    sm = live["summary"]
+    out = [
+        "",
+        "## Analyst live-model run (not gated)",
+        "",
+        f"**n** = {sm['n']} questions · **labels**: {live['label_source']} · **scorer**: {live['scorer']} · "
+        f"**model**: {live['model_version']} · **run date**: {live['run_date']} · "
+        f"**uncertainty**: {live['uncertainty']}",
+        "",
+        f"Behaved as expected (right tools, refusals, approval held): **{sm['behaviour_ok']} / {sm['n']}**. "
+        f"Of {sm['answers_with_numbers']} answers containing numbers: {sm['grounded_first_try']} verified first try, "
+        f"{sm['grounded_after_repair']} after one repair, {sm['flagged_unverified']} flagged unverified. "
+        f"Median {sm['median_seconds']} s per question.",
+        "",
+    ]
+    if first_path.exists():
+        f = json.loads(first_path.read_text())["summary"]
+        out += [
+            f"For comparison, the **first** live run before the fixes described in the case study: behaved as expected "
+            f"{f['behaviour_ok']} / {f['n']}; of {f['answers_with_numbers']} answers with numbers, "
+            f"{f['grounded_first_try']} verified first try and {f['flagged_unverified']} flagged; "
+            f"median {f['median_seconds']} s.",
+            "",
+        ]
+    out += ["| Case | Job | Tools called | Grounded | Repairs | Behaved |", "|---|---|---|---|---|---|"]
+    for c in live["cases"]:
+        tools = ", ".join(dict.fromkeys(c["tools_called"])) or "none"
+        grounded = {True: "yes", False: "**flagged**", None: "n/a"}[c["grounded"]]
+        behaved = "yes" if c["behaviour_ok"] else "no"
+        out.append(f"| {c['id']} | {c['job']} | {tools} | {grounded} | {c['repairs']} | {behaved} |")
+    return out
 
 
 def main() -> None:

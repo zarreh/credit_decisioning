@@ -21,19 +21,12 @@ def _json(payload: dict[str, Any]) -> str:
 
 def build_tools(store: Store, evidence_path: str) -> list[BaseTool]:
     @tool
-    def get_evidence_metric(
-        metric: Literal["auroc", "brier", "ece", "expected_cost"],
-        model: Literal["champion", "challenger"] = "champion",
-    ) -> str:
-        """A model-performance metric on the benchmark: estimate, 95% CI, spread across
-        CV repeats, n, scorer and run date. Use for questions about how good the model is."""
-        return _json(rm.evidence_metric(evidence_path, model, metric))
-
-    @tool
-    def get_evidence_overview() -> str:
-        """Decision policy (costs, threshold, bands and their counts), the trivial
-        baselines, the challenger-minus-champion differences, and data provenance."""
-        return _json(rm.evidence_overview(evidence_path))
+    def get_evidence() -> str:
+        """All model-quality evidence in ONE call: champion and challenger AUROC, expected cost,
+        Brier and ECE with 95% CIs, the champion-vs-challenger differences, the trivial baselines
+        (approve everyone, decline everyone), the decision policy (costs, threshold, band counts)
+        and the data provenance (n, scorer, run date). Call it once for any performance question."""
+        return _json(rm.evidence_all(evidence_path))
 
     @tool
     def get_fairness_table(attribute: Literal["sex", "foreign_worker", "age_band"]) -> str:
@@ -60,9 +53,12 @@ def build_tools(store: Store, evidence_path: str) -> list[BaseTool]:
         value_column: str | None = None,
         filters: dict[str, list[str]] | None = None,
     ) -> str:
-        """Aggregate over the 1,000 benchmark rows. group_by / filters take model feature
-        names (e.g. 'purpose', 'checking_status') and UCI codes (e.g. {'purpose': ['A40']}).
-        Protected attributes are not queryable; cells with n < 30 are suppressed."""
+        """Aggregate over the 1,000 benchmark rows: count, bad_rate or mean (mean needs a numeric
+        value_column such as duration_months or credit_amount). group_by / filters take model
+        feature names (e.g. 'purpose', 'checking_status') and UCI codes (e.g. {'purpose': ['A40']}).
+        Each result cell has the group label, its code and n. Age, sex, foreign worker and
+        telephone are not queryable. Cells with n < 30 are suppressed (value null): report them as
+        suppressed, never work around it."""
         return _json(rm.benchmark_aggregate(metric, group_by, value_column, filters))
 
     @tool
@@ -73,8 +69,7 @@ def build_tools(store: Store, evidence_path: str) -> list[BaseTool]:
         return _json({"source_id": f"draft:{draft_id}", "draft_id": draft_id, "status": "draft"})
 
     return [
-        get_evidence_metric,
-        get_evidence_overview,
+        get_evidence,
         get_fairness_table,
         get_case,
         get_queue_summary,

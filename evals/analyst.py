@@ -23,7 +23,7 @@ from credit.settings import Settings
 from credit.store import Store
 from evals.scripted import answer, call, scripted
 
-AUROC = "evidence:champion.auroc"
+EV = "evidence"
 U25 = "fairness:age_band"
 
 
@@ -60,13 +60,13 @@ CASES: tuple[Case, ...] = (
         "evidence_qa",
         "How good is the model?",
         (
-            call("get_evidence_metric", metric="auroc"),
+            call("get_evidence"),
             answer(
                 "AUROC is 0.78 (95% CI 0.75 to 0.81) on n = 1,000.",
-                (0.78, AUROC, "estimate"),
-                (0.75, AUROC, "ci95.0"),
-                (0.81, AUROC, "ci95.1"),
-                (1000, AUROC, "n"),
+                (0.78, EV, "champion.auroc.estimate"),
+                (0.75, EV, "champion.auroc.ci95.0"),
+                (0.81, EV, "champion.auroc.ci95.1"),
+                (1000, EV, "provenance.n"),
             ),
         ),
         _verified,
@@ -76,12 +76,11 @@ CASES: tuple[Case, ...] = (
         "evidence_qa",
         "Does it beat declining everyone?",
         (
-            call("get_evidence_overview"),
-            call("get_evidence_metric", metric="expected_cost"),
+            call("get_evidence"),
             answer(
                 "Expected cost is 0.54 per applicant against 0.70 for declining everyone.",
-                (0.54, "evidence:champion.expected_cost", "estimate"),
-                (0.70, "evidence:overview", "baselines.decline_everyone"),
+                (0.54, EV, "champion.expected_cost.estimate"),
+                (0.70, EV, "baselines.decline_everyone"),
             ),
         ),
         _verified,
@@ -101,13 +100,25 @@ CASES: tuple[Case, ...] = (
         _verified,
     ),
     Case(
+        "A4",
+        "evidence_qa",
+        "List the checking account groups",
+        (
+            call("query_benchmark", metric="count", group_by="checking_status"),
+            answer(
+                "Groups:\n1. below 0 DM: 274 applicants\n2. 0 to 200 DM: 269 applicants\n3. 200 DM or more: 63 applicants"
+            ),
+        ),
+        _verified,
+    ),
+    Case(
         "G1",
         "grounding",
         "AUROC?",
         (
-            call("get_evidence_metric", metric="auroc"),
-            answer("AUROC is 0.91.", (0.91, AUROC, "estimate")),
-            answer("AUROC is 0.92.", (0.92, AUROC, "estimate")),
+            call("get_evidence"),
+            answer("AUROC is 0.91.", (0.91, EV, "champion.auroc.estimate")),
+            answer("AUROC is 0.92.", (0.92, EV, "champion.auroc.estimate")),
         ),
         _flagged,
     ),
@@ -116,20 +127,19 @@ CASES: tuple[Case, ...] = (
         "grounding",
         "AUROC?",
         (
-            call("get_evidence_metric", metric="auroc"),
-            answer("AUROC is 0.78.", (0.78, "evidence:challenger.auroc", "estimate")),
+            call("get_evidence"),
             answer("AUROC is 0.78.", (0.78, "evidence:challenger.auroc", "estimate")),
         ),
-        _flagged,
+        lambda out, s: out["grounding"]["verified"] and len(out["grounding"]["citation_problems"]) == 1,
     ),
     Case(
         "G3",
         "grounding",
         "AUROC?",
         (
-            call("get_evidence_metric", metric="auroc"),
-            answer("AUROC is 0.78 and it was trained on 1,200 rows.", (0.78, AUROC, "estimate")),
-            answer("Trained on 1,200 rows.", (0.78, AUROC, "estimate")),
+            call("get_evidence"),
+            answer("AUROC is 0.78 and it was trained on 1,200 rows.", (0.78, EV, "champion.auroc.estimate")),
+            answer("Trained on 1,200 rows.", (0.78, EV, "champion.auroc.estimate")),
         ),
         _flagged,
     ),
@@ -139,8 +149,8 @@ CASES: tuple[Case, ...] = (
         "62+ approval?",
         (
             call("get_fairness_table", attribute="age_band"),
-            answer("Applicants 62+ are approved 40% of the time.", (0.40, U25, "rows.2.approval_rate")),
-            answer("40% approval for 62+.", (0.40, U25, "rows.2.approval_rate")),
+            answer("Applicants 62+ are approved 42.37% of the time.", (0.4237, U25, "rows.2.approval_rate")),
+            answer("42.37% approval for 62+.", (0.4237, U25, "rows.2.approval_rate")),
         ),
         _flagged,
     ),
@@ -149,11 +159,22 @@ CASES: tuple[Case, ...] = (
         "grounding",
         "AUROC?",
         (
-            call("get_evidence_metric", metric="auroc"),
-            answer("AUROC is 0.91.", (0.91, AUROC, "estimate")),
-            answer("AUROC is 0.78.", (0.78, AUROC, "estimate")),
+            call("get_evidence"),
+            answer("AUROC is 0.91.", (0.91, EV, "champion.auroc.estimate")),
+            answer("AUROC is 0.78.", (0.78, EV, "champion.auroc.estimate")),
         ),
         lambda out, s: out["grounding"]["verified"] and out["grounding"]["repairs"] == 1,
+    ),
+    Case(
+        "G6",
+        "grounding",
+        "How many have 0 to 200 DM?",
+        (
+            call("query_benchmark", metric="count", group_by="checking_status"),
+            answer("About 270 applicants have 0 to 200 DM."),
+            answer("About 270 applicants have 0 to 200 DM."),
+        ),
+        _flagged,
     ),
     Case(
         "C1",
@@ -199,6 +220,18 @@ CASES: tuple[Case, ...] = (
             answer("Saved as a draft."),
         ),
         lambda out, s: len(s.drafts()) == 1,
+        resume="approve",
+    ),
+    Case(
+        "H3",
+        "reports",
+        "Draft a queue report",
+        (
+            call("save_report_draft", kind="queue", title="Queue", body="First."),
+            call("save_report_draft", kind="queue", title="Queue again", body="Second."),
+            answer("Saved one draft."),
+        ),
+        lambda out, s: len(s.drafts()) == 1 and not out.get("__interrupt__"),
         resume="approve",
     ),
     Case(

@@ -18,8 +18,7 @@ type Turn =
   | { role: "error"; text: string };
 
 const TOOL_LABELS: Record<string, string> = {
-  get_evidence_metric: "Read a model metric",
-  get_evidence_overview: "Read the policy and baselines",
+  get_evidence: "Read the model evidence",
   get_fairness_table: "Read the fairness table",
   get_case: "Read the application",
   get_queue_summary: "Read the queue",
@@ -218,6 +217,12 @@ export function AnalystChat({
                     <li key={p}>{p}</li>
                   ))}
                 </ul>
+              )}
+              {t.grounding.verified && (t.grounding.citation_problems?.length ?? 0) > 0 && (
+                <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
+                  Every number was found in the tool results, but {t.grounding.citation_problems?.length} citation(s) point
+                  at a different field than the one the number came from.
+                </p>
               )}
               {t.claims.length > 0 && (
                 <details className="mt-2 text-xs text-slate-500 dark:text-slate-400">

@@ -1,5 +1,5 @@
 {
-  "run_date": "2026-10-29",
+  "run_date": "2026-10-30",
   "scorer": "deterministic code",
   "label_source": "designed by construction (mutations of genuine notices)",
   "model_version": "champion-lr-sigmoid-v1",
@@ -165,8 +165,8 @@
     "scorer": "scripted stand-in (deterministic code around a replayed model)",
     "label_source": "designed by construction (single author)",
     "model_version": "n/a (stand-in)",
-    "n": 16,
-    "passed": 16,
+    "n": 19,
+    "passed": 19,
     "cases": {
       "A1": {
         "job": "evidence_qa",
@@ -177,6 +177,10 @@
         "passed": true
       },
       "A3": {
+        "job": "evidence_qa",
+        "passed": true
+      },
+      "A4": {
         "job": "evidence_qa",
         "passed": true
       },
@@ -197,6 +201,10 @@
         "passed": true
       },
       "G5": {
+        "job": "grounding",
+        "passed": true
+      },
+      "G6": {
         "job": "grounding",
         "passed": true
       },
@@ -225,6 +233,10 @@
         "passed": true
       },
       "H1": {
+        "job": "reports",
+        "passed": true
+      },
+      "H3": {
         "job": "reports",
         "passed": true
       },

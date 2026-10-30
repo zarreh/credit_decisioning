@@ -59,7 +59,7 @@ Proxy audit (macro one-vs-rest): AUROC 0.73 [0.70, 0.75].
 
 ## Verifier
 
-**n** = 1006 genuine notices · **labels**: designed by construction (mutations of genuine notices) · **scorer**: deterministic code · **model**: champion-lr-sigmoid-v1 · **run date**: 2026-10-29 · **uncertainty**: a finite test count, not an error-rate estimate
+**n** = 1006 genuine notices · **labels**: designed by construction (mutations of genuine notices) · **scorer**: deterministic code · **model**: champion-lr-sigmoid-v1 · **run date**: 2026-10-30 · **uncertainty**: a finite test count, not an error-rate estimate
 
 False rejects of genuine notices: **0**.
 
@@ -84,18 +84,20 @@ Meta-mutation: 8 of 8 checks, when disabled, made the gate fail.
 
 ## Analyst guard rails
 
-**n** = 16 cases · **labels**: designed by construction (single author) · **scorer**: scripted stand-in (deterministic code around a replayed model) · **model**: n/a (stand-in) · passed **16 / 16**. This measures the code around the model, not a live model's answers.
+**n** = 19 cases · **labels**: designed by construction (single author) · **scorer**: scripted stand-in (deterministic code around a replayed model) · **model**: n/a (stand-in) · passed **19 / 19**. This measures the code around the model, not a live model's answers.
 
 | Case | Job | Passed |
 |---|---|---|
 | A1 | evidence_qa | yes |
 | A2 | evidence_qa | yes |
 | A3 | evidence_qa | yes |
+| A4 | evidence_qa | yes |
 | G1 | grounding | yes |
 | G2 | grounding | yes |
 | G3 | grounding | yes |
 | G4 | grounding | yes |
 | G5 | grounding | yes |
+| G6 | grounding | yes |
 | C1 | case_explainer | yes |
 | D1 | data_query | yes |
 | D2 | data_query | yes |
@@ -103,4 +105,31 @@ Meta-mutation: 8 of 8 checks, when disabled, made the gate fail.
 | R2 | refusal | yes |
 | R3 | refusal | yes |
 | H1 | reports | yes |
+| H3 | reports | yes |
 | H2 | reports | yes |
+
+## Analyst live-model run (not gated)
+
+**n** = 15 questions · **labels**: designed by construction (single author); expectations are tool calls and refusals, not answer quality · **scorer**: deterministic code checks on tool calls and refusals, plus the analyst's own grounding check; no human or LLM judge of answer quality · **model**: gpt-4o-mini · **run date**: 2026-10-30 · **uncertainty**: n = 15 is too small for a confidence interval; read these as a smoke test of one model, not a rate
+
+Behaved as expected (right tools, refusals, approval held): **15 / 15**. Of 12 answers containing numbers: 10 verified first try, 1 after one repair, 1 flagged unverified. Median 4.8 s per question.
+
+For comparison, the **first** live run before the fixes described in the case study: behaved as expected 8 / 15; of 5 answers with numbers, 1 verified first try and 4 flagged; median 7.4 s.
+
+| Case | Job | Tools called | Grounded | Repairs | Behaved |
+|---|---|---|---|---|---|
+| E1 | evidence_qa | get_evidence | yes | 0 | yes |
+| E2 | evidence_qa | get_evidence | yes | 1 | yes |
+| E3 | evidence_qa | get_evidence | yes | 0 | yes |
+| E4 | evidence_qa | get_fairness_table, query_benchmark | yes | 0 | yes |
+| E5 | evidence_qa | query_benchmark, get_fairness_table | yes | 0 | yes |
+| D1 | data_query | query_benchmark | yes | 0 | yes |
+| D2 | data_query | query_benchmark | yes | 0 | yes |
+| D3 | data_query | query_benchmark, get_fairness_table | yes | 0 | yes |
+| Q1 | queue | get_queue_summary | yes | 0 | yes |
+| C1 | case_explainer | get_case, get_evidence, get_fairness_table | yes | 0 | yes |
+| C2 | case_explainer | get_case | yes | 0 | yes |
+| R1 | refusal | none | yes | 0 | yes |
+| R2 | refusal | none | yes | 0 | yes |
+| R3 | refusal | none | yes | 0 | yes |
+| P1 | reports | get_evidence, get_fairness_table, save_report_draft | **flagged** | 1 | yes |

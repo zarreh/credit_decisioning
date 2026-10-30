@@ -14,6 +14,7 @@ from langchain.agents.middleware import (
     AgentMiddleware,
     AgentState,
     ModelRequest,
+    ModelResponse,
     dynamic_prompt,
     hook_config,
 )
@@ -96,6 +97,71 @@ class ToolAudit(AgentMiddleware[AgentState[Any], AnalystContext]):
         return result
 
 
+ANSWER_NOW = (
+    "You have already retrieved the data you need. Do not call any more tools: write your final answer "
+    "now using only the tool results above, and say plainly if something could not be retrieved."
+)
+
+
+class AnswerPush(AgentMiddleware[AgentState[Any], AnalystContext]):
+    """After a few rounds of tool calls, take the tools away and ask for the answer.
+
+    Prompts alone do not stop a small model from re-querying in circles (observed live:
+    it never reached its final answer on 7 of 15 questions). A bounded number of rounds
+    per turn guarantees it either answers or hits no tools to call."""
+
+    def __init__(self, max_rounds: int = 3) -> None:
+        super().__init__()
+        self.max_rounds = max_rounds
+
+    @staticmethod
+    def rounds(messages: list[Any]) -> int:
+        count = 0
+        for m in reversed(messages):
+            if isinstance(m, HumanMessage):
+                break
+            if isinstance(m, AIMessage) and any(c["name"] != "AnalystAnswer" for c in m.tool_calls):
+                count += 1
+        return count
+
+    def wrap_model_call(
+        self,
+        request: ModelRequest[AnalystContext],
+        handler: Callable[[ModelRequest[AnalystContext]], ModelResponse[Any]],
+    ) -> ModelResponse[Any] | AIMessage:
+        if self.rounds(list(request.messages)) >= self.max_rounds:
+            request = request.override(tools=[], messages=[*request.messages, HumanMessage(content=ANSWER_NOW)])
+        return handler(request)
+
+
+class OneDraftPerTurn(AgentMiddleware[AgentState[Any], AnalystContext]):
+    """A turn may save one report draft. A second save (seen live) would raise a second approval
+    prompt for the same request, so the call is dropped and the model is told to answer."""
+
+    @staticmethod
+    def saved_this_turn(messages: list[Any]) -> bool:
+        for m in reversed(messages):
+            if isinstance(m, HumanMessage) and m.name != FEEDBACK:
+                return False
+            if isinstance(m, ToolMessage) and m.name == "save_report_draft":
+                return True
+        return False
+
+    @hook_config(can_jump_to=["model"])
+    def after_model(self, state: AgentState[Any], runtime: Runtime[AnalystContext]) -> dict[str, Any] | None:
+        *earlier, last = state["messages"]
+        if not isinstance(last, AIMessage) or not self.saved_this_turn(earlier):
+            return None
+        kept = [c for c in last.tool_calls if c["name"] != "save_report_draft"]
+        if len(kept) == len(last.tool_calls):
+            return None
+        note = "A report draft was already saved this turn. Do not save another; give your final answer."
+        return {
+            "messages": [last.model_copy(update={"tool_calls": kept}), HumanMessage(content=note, name=FEEDBACK)],
+            "jump_to": "model",
+        }
+
+
 class GroundingState(AgentState[Any]):
     grounding: NotRequired[dict[str, Any]]
     grounding_attempts: NotRequired[int]
@@ -145,6 +211,7 @@ class GroundingMiddleware(AgentMiddleware[GroundingState, AnalystContext]):
         report = {
             "verified": result.verified,
             "problems": result.problems,
+            "citation_problems": result.citation_problems,
             "numbers_checked": result.numbers_checked,
             "repairs": attempts,
         }
@@ -152,8 +219,8 @@ class GroundingMiddleware(AgentMiddleware[GroundingState, AnalystContext]):
             return {"grounding": report}
         feedback = "Your answer failed the number check:\n- " + "\n- ".join(result.problems)
         feedback += (
-            "\nFix it: every number must come from a tool result and have a claim citing its "
-            "source_id and field. Call a tool if you need the number."
+            "\nFix it: every number must be copied from a tool result you retrieved. Do not round whole "
+            "numbers, do not compute new figures, and call a tool if you need the number."
         )
         return {
             "messages": [HumanMessage(content=feedback, name=FEEDBACK)],

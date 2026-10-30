@@ -32,31 +32,25 @@ def evidence(path: str) -> dict[str, Any]:
     return data
 
 
-def evidence_metric(path: str, model: Literal["champion", "challenger"], metric: str) -> dict[str, Any]:
-    e = evidence(path)
-    if metric not in e[model]:
-        raise QueryError(f"unknown metric {metric}; choose from {sorted(e[model])}")
-    prov = e["provenance"]
-    return {
-        "source_id": f"evidence:{model}.{metric}",
-        "model": model,
-        "metric": metric,
-        **e[model][metric],
-        "n": prov["n"],
-        "scorer": prov["scorer"],
-        "run_date": prov["run_date"],
-        "model_version": prov["model_version"],
-    }
-
-
-def evidence_overview(path: str) -> dict[str, Any]:
+def evidence_all(path: str) -> dict[str, Any]:
+    """Everything about model quality in one result: both models' four metrics with CIs,
+    the paired differences, the trivial baselines, the policy and the provenance. One call
+    answers any performance question, so the agent has no reason to fan out."""
     e = evidence(path)
     return {
-        "source_id": "evidence:overview",
-        "policy": e["policy"],
-        "baselines": e["baselines"],
+        "source_id": "evidence",
+        "champion": e["champion"],
+        "challenger": e["challenger"],
         "challenger_minus_champion": e["challenger_minus_champion"],
+        "baselines": e["baselines"],
+        "policy": e["policy"],
         "provenance": e["provenance"],
+        "glossary": {
+            "auroc": "ranking quality; 0.5 is a coin flip",
+            "expected_cost": "average cost per applicant under the 5:1 cost matrix; lower is better",
+            "brier": "mean squared error of the probabilities; lower is better",
+            "ece": "calibration error; lower is better",
+        },
     }
 
 
@@ -67,6 +61,10 @@ def fairness(path: str, attribute: Literal["sex", "foreign_worker", "age_band"])
         "rows": e["fairness"][attribute],
         "proxy_audit": e["proxy_audit"][attribute],
         "note": "Measure and disclose; the 80% adverse-impact ratio is a screening heuristic, not a legal test.",
+        "small_n_rule": (
+            f"A group with fewer than {MIN_CELL_N} applicants, or fewer than 10 of either outcome, is reported as "
+            "insufficient n with no point estimate."
+        ),
     }
 
 
@@ -126,7 +124,15 @@ def benchmark_aggregate(
     allowed = set(MODEL_FEATURES)
     for column in [group_by, value_column, *(filters or {})]:
         if column is not None and column not in allowed:
-            raise QueryError(f"{column} is not queryable; allowed: {sorted(allowed)}")
+            hint = " Age, sex, foreign-worker status and telephone are protected: use get_fairness_table."
+            raise QueryError(f"{column} is not queryable; allowed: {sorted(allowed)}.{hint}")
+    for column, codes in (filters or {}).items():
+        valid = CATEGORY_LABELS.get(column)
+        if valid is None:
+            raise QueryError(f"{column} is numeric; filters take category columns with UCI codes")
+        unknown = [c for c in codes if c not in valid]
+        if unknown:
+            raise QueryError(f"unknown {column} code(s) {unknown}; valid codes: {valid}")
     if metric == "mean" and value_column not in MODEL_NUMERIC:
         raise QueryError(f"mean needs a numeric value_column from {list(MODEL_NUMERIC)}")
     frame = _benchmark()
@@ -136,7 +142,7 @@ def benchmark_aggregate(
     cells = []
     for key, part in groups:
         label = CATEGORY_LABELS.get(group_by or "", {}).get(str(key), str(key))
-        cell: dict[str, Any] = {"group": label, "n": int(len(part))}
+        cell: dict[str, Any] = {"group": label, "code": str(key), "n": int(len(part))}
         if len(part) < MIN_CELL_N:
             cell["value"], cell["suppressed"] = None, True
         elif metric == "count":
@@ -151,5 +157,8 @@ def benchmark_aggregate(
         "source_id": "benchmark:" + json.dumps(query, sort_keys=True),
         "query": query,
         "cells": cells,
-        "note": f"UCI benchmark, n = {len(frame)} after filters; cells with n < {MIN_CELL_N} are suppressed.",
+        "note": (
+            f"UCI benchmark, n = {len(frame)} after filters. Cells with n < {MIN_CELL_N} are suppressed on "
+            "purpose (value null); report them as suppressed and do not try to work around it."
+        ),
     }

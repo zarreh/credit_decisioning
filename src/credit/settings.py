@@ -23,6 +23,7 @@ class Settings(AgentSettings):
     analyst_model: str = "gpt-4o-mini"
     analyst_max_model_calls: int = 8
     analyst_max_tool_calls: int = 12
+    analyst_max_tool_rounds: int = 3
     analyst_max_message_chars: int = 2000
 
     write_rate_limit_per_minute: int = 20

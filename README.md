@@ -25,7 +25,7 @@ All numbers are generated: see [docs/evidence/results.md](docs/evidence/results.
 - Champion expected cost **0.541** [95% CI 0.488, 0.598] per applicant vs **0.70** for declining everyone (n = 1,000, UCI labels, out-of-fold, deterministic scorer).
 - AUROC **0.780** [0.751, 0.810]; the boosted challenger's advantage, +0.012 [−0.003, 0.029], is not established.
 - Verifier: every applicable mutant killed across 14 mutators on 1,006 genuine notices; 0 genuine notices rejected; 8 of 8 disabled checks detected. Scorer: deterministic code.
-- Analyst guard rails: 16 / 16 scripted-stand-in cases. This is not a live-model measurement.
+- Analyst guard rails: 19 / 19 scripted-stand-in cases (gated). A separate, ungated live run on `gpt-4o-mini` behaved correctly on 15 of 15 questions after fixes, with one answer flagged for a real number error (n = 15, single author: a smoke test, not a rate). See [the results](docs/evidence/results.md).
 
 ## Run it
 

@@ -41,3 +41,12 @@ def store(tmp_path: Path, queue: list[dict[str, object]]) -> Iterator[Store]:
 
 def application_of(benchmark: pd.DataFrame, row_id: str) -> Application:
     return to_application(benchmark[benchmark["row_id"] == row_id].iloc[0])
+
+
+@pytest.fixture(autouse=True)
+def _no_ambient_keys(monkeypatch: pytest.MonkeyPatch) -> None:
+    """A developer's .env must never leak into tests: no real model calls, no tracing uploads."""
+    from credit.api import deps
+
+    monkeypatch.setattr(deps.settings, "openai_api_key", "")
+    monkeypatch.setattr(deps.settings, "langsmith_api_key", "")
