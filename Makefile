@@ -65,10 +65,10 @@ down:
 	docker compose down
 
 docs:
-	uv run mkdocs serve -a localhost:8001
+	uv run zensical serve -a localhost:8001
 
 docs-build:
-	uv run mkdocs build --strict
+	uv run zensical build --clean --strict
 
 docs-assets:
 	uv run python docs/generate_plots.py

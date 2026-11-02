@@ -30,7 +30,7 @@ jobs:
       - name: Docs assets are up to date
         run: make docs-assets && git diff --exit-code -- docs
       - name: Docs build
-        run: uv run mkdocs build --strict
+        run: uv run zensical build --clean --strict
 
   frontend:
     runs-on: ubuntu-latest
@@ -53,3 +53,28 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: docker compose build
+
+  docs-deploy:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: [backend, frontend, containers]
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    concurrency:
+      group: pages
+      cancel-in-progress: false
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v3
+      - run: uv sync --frozen --extra docs
+      - run: uv run zensical build --clean --strict
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+      - id: deployment
+        uses: actions/deploy-pages@v4
