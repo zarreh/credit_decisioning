@@ -114,7 +114,13 @@ def main() -> int:
         "analyst": analyst_result,
         "gate_problems": problems,
     }
-    Path("artifacts/verifier_report.json").write_text(json.dumps(report, indent=2) + "\n")
+    report_path = Path("artifacts/verifier_report.json")
+    if report_path.exists():
+        # An unchanged result keeps its original run date, so reruns don't dirty the generated docs.
+        previous = json.loads(report_path.read_text())
+        if {**previous, "run_date": None} == {**report, "run_date": None}:
+            report["run_date"] = previous["run_date"]
+    report_path.write_text(json.dumps(report, indent=2) + "\n")
     for mid, m in result["mutators"].items():
         print(f"{mid:4} {m['defect']:40} killed {m['killed']}/{m['applicable']} skipped {m['skipped']}")
     print(f"genuine notices {result['genuine_notices']}, false rejects {result['false_rejects']}")
